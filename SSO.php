@@ -40,6 +40,28 @@ if (strpos($callbackurl, 'http%') !== false
     $callbackurl = urldecode($callbackurl);
 }
 
+// Check $callback is valid
+$servers = get_target_panopto_servers();
+$allowedcallback = false;
+if (strpos($callbackurl, $CFG->wwwroot) === 0) {
+    // If the callback sends the user back to Moodle, allow it.
+    $allowedcallback = true;
+}
+foreach ($servers as $server) {
+    // Add each panopto server as an allowed url.
+    if (strpos($callbackurl, 'https://'.$server->name) === 0 ||
+        strpos($callbackurl, 'http://'.$server->name) === 0) {
+
+        $allowedcallback = true;
+    }
+}
+if (!$allowedcallback) {
+    echo $OUTPUT->header();
+    echo 'Invalid callback url.';
+    echo $OUTPUT->footer();
+    die;
+}
+
 // A float doesn't have the required precision.
 $expiration = preg_replace('/[^0-9\.]/', '', required_param('expiration', PARAM_RAW));
 
